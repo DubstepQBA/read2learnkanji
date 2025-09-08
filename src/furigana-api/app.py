@@ -6,15 +6,16 @@ import json
 from flask_cors import CORS
 from PyPDF2 import PdfReader
 import docx
+import sqlite3
 
 app = Flask(__name__)
 cors = CORS(app, origins='*')
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(base_dir, '..', '..'))
-jmdict_path = os.path.join(project_root, 'src', 'furigana-api', 'jmdict_all_eng.json')
-with open(jmdict_path, encoding="utf-8") as f:
-    jmdict = json.load(f).get("words", [])
+
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict.db')
+conn = sqlite3.connect(db_path, check_same_thread=False)
 
 mode = tokenizer.Tokenizer.SplitMode.C
 
@@ -24,28 +25,13 @@ def kata_to_hira(katakana):
         for c in katakana
     )
 
-def lookup_translation(lemma, reading_hira, jmdict_entries):
-    for entry in jmdict_entries:
-        if not isinstance(entry, dict):
-            continue
-        for kanji_form in entry.get("kanji", []):
-            if lemma == kanji_form.get("text"):
-                gloss_texts = [
-                    gloss.get("text", "")
-                    for sense in entry.get("sense", [])
-                    for gloss in sense.get("gloss", [])
-                    if gloss.get("lang") == "eng"
-                ]
-                return "/".join(gloss_texts[:3])
-        for kana_form in entry.get("kana", []):
-            if reading_hira == kana_form.get("text"):
-                gloss_texts = [
-                    gloss.get("text", "")
-                    for sense in entry.get("sense", [])
-                    for gloss in sense.get("gloss", [])
-                    if gloss.get("lang") == "eng"
-                ]
-                return "/".join(gloss_texts[:3])
+def lookup_translation(lemma, reading_hira):
+    cursor = conn.cursor()
+    query = "SELECT translations FROM words WHERE kanji_form = ? OR kana_form = ?"
+    cursor.execute(query, (lemma, reading_hira))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
     return ""
 
 def read_txt(file_content):
@@ -164,7 +150,7 @@ def analyze():
             lemma = morpheme.dictionary_form()
 
             if re.search(r'[\u4E00-\u9FFF]', surface):
-                translation = lookup_translation(lemma, reading_hira, jmdict)
+                translation = lookup_translation(lemma, reading_hira)
                 para_output.append({
                     "type": "word",
                     "kanji": surface,
