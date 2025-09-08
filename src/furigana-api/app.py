@@ -14,8 +14,13 @@ cors = CORS(app, origins='*')
 base_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(base_dir, '..', '..'))
 
-db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jmdict.db')
-conn = sqlite3.connect(db_path, check_same_thread=False)
+db_path = os.path.join(base_dir, 'jmdict.db')
+try:
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    print("Connected to jmdict.db successfully.")
+except sqlite3.OperationalError:
+    print("Error: jmdict.db not found. Please run create_db_from_json.py first.")
+    conn = None
 
 mode = tokenizer.Tokenizer.SplitMode.C
 
@@ -26,12 +31,18 @@ def kata_to_hira(katakana):
     )
 
 def lookup_translation(lemma, reading_hira):
+    if conn is None:
+        return ""
+    
     cursor = conn.cursor()
     query = "SELECT translations FROM words WHERE kanji_form = ? OR kana_form = ?"
     cursor.execute(query, (lemma, reading_hira))
     result = cursor.fetchone()
     if result:
-        return result[0]
+        translations = result[0].split(' | ')
+        # ⬇️ Limiting to the first two translations
+        limited_translations = translations[:2]
+        return " | ".join(limited_translations)
     return ""
 
 def read_txt(file_content):

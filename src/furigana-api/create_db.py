@@ -1,62 +1,72 @@
-import json
 import sqlite3
+import json
 import os
+import re
 
-print("Starting database creation...")
+db_path = 'jmdict.db'
+json_path = 'jmdict_common_eng.json'
 
-# Path to the JSON file
-base_dir = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(base_dir, '..', '..', 'src', 'furigana-api', 'jmdict_all_eng.json')
-db_path = os.path.join(base_dir, 'jmdict.db')
+if os.path.exists(db_path):
+    os.remove(db_path)
+    print(f"Existing database file '{db_path}' removed.")
 
-# Connect to the SQLite database (this will create the file if it doesn't exist)
 conn = sqlite3.connect(db_path)
-c = conn.cursor()
+cursor = conn.cursor()
 
-# Create table with separate fields for kanji and kana forms to allow quick lookups
-c.execute('''
-    CREATE TABLE IF NOT EXISTS words (
-        id INTEGER PRIMARY KEY,
-        kanji_form TEXT,
-        kana_form TEXT,
-        translations TEXT
-    )
+cursor.execute('''
+CREATE TABLE words (
+    kanji_form TEXT,
+    kana_form TEXT,
+    translations TEXT
+)
 ''')
 conn.commit()
 
-# Read and process the JSON data
-with open(json_path, 'r', encoding='utf-8') as f:
-    jmdict = json.load(f).get("words", [])
+try:
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
-    data_to_insert = []
-    print(f"Found {len(jmdict)} entries to process. This may take a few minutes...")
-    for entry in jmdict:
-        if not isinstance(entry, dict):
-            continue
+    to_insert = []
+    
+    # Process the 'words' list from the JSON data
+    for word_entry in data.get('words', []):
+        kanji_form = None
+        # Find the common kanji form
+        common_kanji = [k['text'] for k in word_entry.get('kanji', []) if k.get('common')]
+        if common_kanji:
+            kanji_form = common_kanji[0]
+        elif word_entry.get('kanji'):
+            kanji_form = word_entry['kanji'][0]['text']
 
-        translations = [
-            gloss.get("text", "")
-            for sense in entry.get("sense", [])
-            for gloss in sense.get("gloss", [])
-            if gloss.get("lang") == "eng"
-        ]
+        kana_form = None
+        # Find the common kana form
+        common_kana = [k['text'] for k in word_entry.get('kana', []) if k.get('common')]
+        if common_kana:
+            kana_form = common_kana[0]
+        elif word_entry.get('kana'):
+            kana_form = word_entry['kana'][0]['text']
+
+        translations = []
+        # Collect all English translations from all senses
+        for sense in word_entry.get('sense', []):
+            for gloss in sense.get('gloss', []):
+                if gloss.get('lang') == 'eng':
+                    translations.append(gloss.get('text'))
         
-        main_translation = "/".join(translations[:3])
+        # Join the translations into a single string
+        translations_str = " | ".join(translations)
 
-        # We will create an entry for each kanji form and a separate one for each kana form
-        kanji_forms = [kf.get("text") for kf in entry.get("kanji", [])]
-        kana_forms = [kf.get("text") for kf in entry.get("kana", [])]
+        to_insert.append((kanji_form, kana_form, translations_str))
 
-        if kanji_forms:
-            for kf in kanji_forms:
-                data_to_insert.append((kf, None, main_translation))
-        if kana_forms:
-            for naf in kana_forms:
-                data_to_insert.append((None, naf, main_translation))
+    insert_query = "INSERT INTO words (kanji_form, kana_form, translations) VALUES (?, ?, ?)"
+    cursor.executemany(insert_query, to_insert)
+    conn.commit()
+    
+    print(f"Loaded {len(to_insert)} words and successfully inserted into the database.")
 
-# Insert all data at once for efficiency
-c.executemany("INSERT INTO words (kanji_form, kana_form, translations) VALUES (?, ?, ?)", data_to_insert)
-conn.commit()
-conn.close()
-
-print("Database created successfully! The file 'jmdict.db' is ready to use.")
+except FileNotFoundError:
+    print(f"Error: The file '{json_path}' was not found.")
+except Exception as e:
+    print(f"An error occurred: {e}")
+finally:
+    conn.close()
