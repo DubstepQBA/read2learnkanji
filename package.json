@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "render-build": "npm run build && cp -r dist/* public"
+    "render-build": "npm install && npm run build"
   },
   "dependencies": {
     "axios": "^1.11.0",
