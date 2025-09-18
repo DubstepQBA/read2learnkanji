@@ -5,3 +5,5 @@ sudachipy
 PyPDF2
 python-docx
 gunicorn
+pytesseract
+Pillow

@@ -2,8 +2,6 @@ import React from "react";
 
 export default function Word(props) {
 
-console.log("translations from props are : ", props.translation, "&", props.furigana);
-
 
   if (props.type === "word") {
     return (

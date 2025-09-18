@@ -15,70 +15,53 @@ function App() {
   const controllerRef = useRef(null);
   const [prefetchedData, setPrefetchedData] = useState({});
   const [selectedBook, setSelectedBook] = useState(null); // New state for pre-selected books
-
+  const [imageFile, setImageFile] = useState(null);
   const fileName = file ? file.name : selectedBook;
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
-  useEffect(() => {
-    // Determine which API call to make based on file or selected book
-    if (file) {
-      const pageKey = `page_${currentPage}`;
-      if (prefetchedData[pageKey]) {
-        setWordData(prefetchedData[pageKey].data);
-        setTotalLength(prefetchedData[pageKey].totalLength);
-        setIsLoading(false);
-      } else {
-        fetchAPI(currentPage, (data) => {
-          setWordData(data.data);
-          setTotalLength(data.totalLength);
-        });
-      }
-      prefetchNextPages();
-    } else if (selectedBook) {
-      const pageKey = `page_${currentPage}`;
-      if (prefetchedData[pageKey]) {
-        setWordData(prefetchedData[pageKey].data);
-        setTotalLength(prefetchedData[pageKey].totalLength);
-        setIsLoading(false);
-      } else {
-        fetchAPI(currentPage, (data) => {
-          setWordData(data.data);
-          setTotalLength(data.totalLength);
-        });
-      }
-      prefetchNextPages();
-    }
-    return () => {
-      if (controllerRef.current) {
-        controllerRef.current.abort();
-      }
-    };
-  }, [file, selectedBook, currentPage]);
 
-  const prefetchNextPages = () => {
-    const pagesToPrefetch = 2;
-    for (let i = 1; i <= pagesToPrefetch; i++) {
-      const pageToFetch = currentPage + i;
-      const pageKey = `page_${pageToFetch}`;
-      
-      if (!prefetchedData[pageKey] && (pageToFetch * pageSizeCharacter) < totalLength) {
-        fetchAPI(pageToFetch, (data) => {
-          setPrefetchedData(prev => ({ ...prev, [pageKey]: data }));
-        });
-      }
-    }
-  };
+   useEffect(() => {
+  if (file || imageFile || selectedBook) {
+    handleSubmit();
+  }
+  // eslint-disable-next-line
+}, [file, imageFile, selectedBook, currentPage]);
+
 
   const handleFileChange = (event) => {
     // Reset selected book when a file is uploaded
     setSelectedBook(null);
+    setImageFile(null);
     setFile(event.target.files[0]);
     setCurrentPage(0);
     setPrefetchedData({});
   };
 
+  const handleImageFileChange = (event) => {
+    // Reset other file states
+    setFile(null);
+    setSelectedBook(null);
+
+    const uploadedFile = event.target.files[0];
+    setImageFile(uploadedFile);
+    setCurrentPage(0);
+    setPrefetchedData({});
+  };
+
+    const handleSubmit = () => {
+    if (file || imageFile || selectedBook) {
+      fetchAPI(currentPage, (data) => {
+        setWordData(data.data);
+        setTotalLength(data.totalLength);
+      });
+    }
+  };
+
   const handleBookSelect = (bookName) => {
     // Reset uploaded file when a pre-selected book is chosen
     setFile(null);
+    setImageFile(null);
     setSelectedBook(bookName);
     setCurrentPage(0);
     setPrefetchedData({});
@@ -96,14 +79,20 @@ function App() {
     if (controllerRef.current) {
       controllerRef.current.abort();
     }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
     setWordData([]);
     setCurrentPage(0);
     setTotalLength(0);
     setFile(null);
+    setImageFile(null);
     setSelectedBook(null); // Reset selected book
     setIsLoading(false);
     setPrefetchedData({});
-    document.getElementById('file-input').value = null;
   };
 
   async function fetchAPI(pageNumber, onSuccess) {
@@ -113,17 +102,17 @@ function App() {
     
     let response;
     try {
-      if (file) {
-        const formData = new FormData();
+      let formData = new FormData();
+      let endpoint = '';
+      
+      if (imageFile) {
+        endpoint = '/ocr';
+        formData.append('image_file', imageFile);
+      } else if (file) {
+        endpoint = '/analyze';
         formData.append('file', file);
-        formData.append('start_position', pageNumber * pageSizeCharacter);
-        formData.append('page_size', pageSizeCharacter);
-        formData.append('filepath', fileName);
-        response = await axios.post('http://127.0.0.1:8080/analyze', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          signal: signal,
-        });
       } else if (selectedBook) {
+        // Book requests are a special case, they don't use FormData.
         response = await axios.post('http://127.0.0.1:8080/analyze', {
           filepath: selectedBook,
           start_position: pageNumber * pageSizeCharacter,
@@ -131,13 +120,25 @@ function App() {
         }, {
           signal: signal,
         });
+        onSuccess(response.data);
+        setIsLoading(false);
+        return;
       } else {
-        // No file or book selected, do nothing
         setIsLoading(false);
         return;
       }
 
+      // Add pagination data to the FormData for file/image uploads
+      formData.append('start_position', pageNumber * pageSizeCharacter);
+      formData.append('page_size', pageSizeCharacter);
+
+      response = await axios.post(`http://127.0.0.1:8080${endpoint}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        signal: signal,
+      });
+
       onSuccess(response.data);
+      console.log("API response:", response.data);
       setIsLoading(false);
 
     } catch (error) {
@@ -180,7 +181,8 @@ function App() {
   const handlePrevPage = () => {
     setCurrentPage(prevPage => Math.max(0, prevPage - 1));
   };
-
+console.log("receive data:", wordData);
+// Generate paragraph elements
   const paragraphElement = wordData.map((show, i) => (
     <p key={i}>
       {show.map((item, j) => (
@@ -204,12 +206,32 @@ function App() {
     <>
       <h1>Japanese Text Reader</h1>
       
+      {/* File Upload Section */}
       <div className="file-upload">
-        <input type="file" onChange={handleFileChange} id="file-input" />
-        {isLoading && <button onClick={handleCancel}>Cancel</button>}
-        <button onClick={handleReset}>Reset</button>
+        <label htmlFor="file-input">
+          <button onClick={() => document.getElementById('file-input').click()}>Upload Document</button>
+        </label>
+        <input type="file" onChange={handleFileChange} id="file-input" ref={fileInputRef} style={{ display: 'none' }} accept=".pdf,.doc,.docx,.txt"/>
+        <p className="file-name">{file ? file.name : 'No document selected'}</p>
       </div>
 
+      {/* Picture Upload Section */}
+      <div className="image-upload">
+        <label htmlFor="image-input">
+          <button onClick={() => document.getElementById('image-input').click()}>Upload Image</button>
+        </label>
+        <input type="file" onChange={handleImageFileChange} id="image-input" ref={imageInputRef} style={{ display: 'none' }} accept=".jpg,.jpeg,.png"/>
+        <p className="file-name">{imageFile ? imageFile.name : 'No image file selected'}</p>
+      </div>
+
+      {/*submit, reset and cancel buttons */}
+      <div className="control-buttons">
+          <button onClick={handleSubmit} disabled={!file && !imageFile && !selectedBook}>Submit</button>
+          {isLoading && <button onClick={handleCancel}>Cancel</button>}
+          <button onClick={handleReset}>Reset</button>
+      </div>    
+
+      {/* Pre-selected Books Section */}
       <div className="pre-selected-books">
         <p>Or choose a pre-selected book:</p>
         <button onClick={() => handleBookSelect('wagahaiwa_nekodearu.txt')}>Wagahai Wa Neko De Aru (dificult)</button>
@@ -217,6 +239,7 @@ function App() {
         <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button>
       </div>
 
+      {/* navigation buttons */}
       <div className="page-navigation">
         <button onClick={handlePrevPage} disabled={currentPage === 0}>Previous Page</button>
         <span>Page {currentPage + 1}</span>
