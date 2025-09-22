@@ -1,4 +1,6 @@
 import React from "react";
+//https://romainmarcedesj.github.io/read2learnkanji
+
 
 export default function Word(props) {
   //console.log("word dificulty of ", props.kanji, " is ", props.kanjiDifficulty);

@@ -19,7 +19,7 @@ function App() {
   const fileName = file ? file.name : selectedBook;
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
-  const [selectedLevel, setSelectedLevel] = useState(5); // Default to N5
+  const [selectedLevel, setSelectedLevel] = useState(3); // Default to N5
 
    useEffect(() => {
   if (file || imageFile || selectedBook) {
