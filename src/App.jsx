@@ -19,7 +19,7 @@ function App() {
   const fileName = file ? file.name : selectedBook;
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
-
+  const [selectedLevel, setSelectedLevel] = useState(5); // Default to N5
 
    useEffect(() => {
   if (file || imageFile || selectedBook) {
@@ -27,6 +27,18 @@ function App() {
   }
   // eslint-disable-next-line
 }, [file, imageFile, selectedBook, currentPage]);
+
+// 2. Remap wordData when JLPT level changes (but only if there is data)
+useEffect(() => {
+  if (wordData.length > 0) {
+    setWordData(prev =>
+      prev.map(paragraph =>
+        paragraph.map(word => defineWordDisplay(word, selectedLevel))
+      )
+    );
+  }
+  // eslint-disable-next-line
+}, [selectedLevel]);
 
 
   const handleFileChange = (event) => {
@@ -51,10 +63,7 @@ function App() {
 
     const handleSubmit = () => {
     if (file || imageFile || selectedBook) {
-      fetchAPI(currentPage, (data) => {
-        setWordData(data.data);
-        setTotalLength(data.totalLength);
-      });
+      fetchAPI(currentPage, handleApiData);
     }
   };
 
@@ -151,6 +160,68 @@ function App() {
     }
   }
 
+
+//helper function to set initial word display based on selected level
+function handleApiData(data) {
+  const processedData = data.data.map(paragraph =>
+    paragraph.map(word => defineWordDisplay(word, selectedLevel))
+  );
+  setWordData(processedData);
+  setTotalLength(data.totalLength);
+}
+
+
+//Using a power for weighted average to determine kanji difficulty
+function calculatePowerJlptAverage(kanjiLevels) {
+    if (!kanjiLevels || kanjiLevels.length === 0) {
+        return 0;
+    }
+
+    // You can adjust this exponent to change the steepness of the difficulty curve.
+    const p = 2; 
+
+    // Use .reduce() to sum the difficulty levels raised to the power of p.
+    const powerSum = kanjiLevels.reduce((sum, kanji) => {
+        // We use (6 - kanji.jlpt_level) to invert the scale (N5 = 1, N4 = 2, ..., N1 = 5)
+        const invertedJlpt = 6 - kanji.jlpt_level;
+        return sum + Math.pow(invertedJlpt, p);
+    }, 0);
+
+    // Calculate the average of the power sum
+    return powerSum / kanjiLevels.length;
+}
+
+
+
+//function that determines level of each word on render
+
+
+function defineWordDisplay(word, selectedLevel) {
+  const kanjiLevels = word.kanji_levels;
+  if (!kanjiLevels || kanjiLevels.length === 0) {
+    return { ...word, showFurigana: false, showTranslation: false };
+  }
+
+  // Calculate power score (higher = harder)
+  const score = calculatePowerJlptAverage(kanjiLevels);
+
+  // User's level and "two up" level as power scores
+  const userLevelScore = Math.pow(6 - selectedLevel, 2);
+  const twoUpScore = Math.pow(6 - (selectedLevel - 2), 2);
+ console.log("kanji score is", score, "user level score is", userLevelScore, "two up score is", twoUpScore);
+  if (score <= userLevelScore) {
+    // Word is easier or equal to user's level
+    return { ...word, showFurigana: false, showTranslation: false };
+  } else if (score > userLevelScore && score < twoUpScore) {
+    // Word is harder than user's level, but not much harder
+    return { ...word, showFurigana: true, showTranslation: false };
+  } else if (score >= twoUpScore) {
+    // Word is much harder
+    return { ...word, showFurigana: true, showTranslation: true };
+  }
+  return word;
+}
+
    function handleSwipe(id) {
   setWordData(prev =>
     prev.map(paragraph =>
@@ -172,6 +243,9 @@ function App() {
   );
 }
 
+
+
+
   const handleNextPage = () => {
     if ((currentPage + 1) * pageSizeCharacter < totalLength) {
       setCurrentPage(prevPage => prevPage + 1);
@@ -181,7 +255,7 @@ function App() {
   const handlePrevPage = () => {
     setCurrentPage(prevPage => Math.max(0, prevPage - 1));
   };
-console.log("receive data:", wordData);
+
 // Generate paragraph elements
   const paragraphElement = wordData.map((show, i) => (
     <p key={i}>
@@ -194,6 +268,7 @@ console.log("receive data:", wordData);
           kanji={item.kanji}
           showFurigana={item.showFurigana}
           showTranslation={item.showTranslation}
+          kanjiDifficulty={item.kanji_levels}
           type={item.type}
           id={item.id}
           value={item.value}
@@ -205,11 +280,19 @@ console.log("receive data:", wordData);
   return (
     <>
       <h1>Japanese Text Reader</h1>
-      
+
+
+      <div className="level-select">
+      <button onClick={() => {setSelectedLevel(5)}}>N5</button>
+      <button onClick={() => {setSelectedLevel(4)}}>N4</button>
+      <button onClick={() => {setSelectedLevel(3)}}>N3</button>
+      <button onClick={() => {setSelectedLevel(2)}}>N2</button>
+      <button onClick={() => {setSelectedLevel(1)}}>N1</button>
+      </div>
       {/* File Upload Section */}
       <div className="file-upload">
         <label htmlFor="file-input">
-          <button onClick={() => document.getElementById('file-input').click()}>Upload Document</button>
+          <button onClick={() => fileInputRef.current && fileInputRef.current.click()}>Upload Document</button>
         </label>
         <input type="file" onChange={handleFileChange} id="file-input" ref={fileInputRef} style={{ display: 'none' }} accept=".pdf,.doc,.docx,.txt"/>
         <p className="file-name">{file ? file.name : 'No document selected'}</p>
@@ -218,7 +301,7 @@ console.log("receive data:", wordData);
       {/* Picture Upload Section */}
       <div className="image-upload">
         <label htmlFor="image-input">
-          <button onClick={() => document.getElementById('image-input').click()}>Upload Image</button>
+          <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload Image</button>
         </label>
         <input type="file" onChange={handleImageFileChange} id="image-input" ref={imageInputRef} style={{ display: 'none' }} accept=".jpg,.jpeg,.png"/>
         <p className="file-name">{imageFile ? imageFile.name : 'No image file selected'}</p>
@@ -263,5 +346,4 @@ console.log("receive data:", wordData);
     </>
   );
 }
-
 export default App;

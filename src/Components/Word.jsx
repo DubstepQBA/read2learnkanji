@@ -1,8 +1,7 @@
 import React from "react";
 
 export default function Word(props) {
-
-
+  //console.log("word dificulty of ", props.kanji, " is ", props.kanjiDifficulty);
   if (props.type === "word") {
     return (
       <span onClick={() => props.handleSwipe(props.id)}>
