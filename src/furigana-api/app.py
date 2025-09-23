@@ -298,6 +298,10 @@ def analyze_text():
     # If no file was uploaded and no book was selected, return an empty response.
     return jsonify({"data": [], "totalLength": 0})
 
+@app.route('/warmup', methods=['GET'])
+@cross_origin()
+def warmup():
+    return jsonify({"status": "warmup successful"})
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
 else:

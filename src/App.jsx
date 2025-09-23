@@ -4,7 +4,7 @@ import './App.css';
 import axios from 'axios';
 
 const MemoizedWord = React.memo(Word);
-const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080";
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080"; //http://127.0.0.1:5000 (local) http://127.0.0.1:8080 (deploy)
 
 function App() {
   const [wordData, setWordData] = useState([]);
@@ -29,7 +29,22 @@ function App() {
     handleSubmit();
   }
   // eslint-disable-next-line
-}, [file, imageFile, selectedBook, currentPage]);
+  }, [file, imageFile, selectedBook, currentPage]);
+
+
+// launch a warmup call to the backend on initial render
+useEffect(() => {
+    axios.get(`${API_BASE}/warmup`)
+        .then(response => {
+            console.log("Backend warmed up:", response.data);
+            setBackendStatus("Back-end connected! Get reading!");
+            // You can set a status state here if you want to display a "ready" message
+        })
+        .catch(error => {
+            console.error("Warmup failed:", error);
+            setBackendStatus("Connection error. The back-end may be down.");
+        });
+}, []);
 
 // 2. Remap wordData when JLPT level changes (but only if there is data)
 useEffect(() => {
@@ -107,47 +122,58 @@ useEffect(() => {
     setPrefetchedData({});
   };
 
-  const fetchAPI = (page, callback) => {
-    // Reset wordData and set a "spinning up" message before the API call
-    setWordData([]);
-    setBackendStatus("Back-end spinning up, please wait...");
+  async function fetchAPI(pageNumber, onSuccess) {
     setIsLoading(true);
-
-    if (controllerRef.current) {
-      controllerRef.current.abort();
-    }
     controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+    
+    try {
+        let formData = new FormData();
+        let endpoint = '';
+        let postData;
 
-    const startPosition = page * pageSizeCharacter;
-    const endPosition = (page + 1) * pageSizeCharacter;
-
-    const endpoint = selectedBook ? `${API_BASE}/process_text_book` : `${API_BASE}/process_text_file`;
-
-    // The rest of your axios call remains the same, but with added status updates
-    axios.post(endpoint,
-      selectedBook ? { filepath: selectedBook, start_position: startPosition, page_size: pageSizeCharacter } : file,
-      {
-        headers: {
-          'Content-Type': selectedBook ? 'application/json' : file.type
-        },
-        signal: controllerRef.current.signal
-      })
-      .then(response => {
-        // Upon a successful response, change the status to "connected"
-        setBackendStatus("Back-end connected!");
-        callback(response.data);
-      })
-      .catch(error => {
-        if (axios.isCancel(error)) {
-          console.log('Request canceled', error.message);
+        if (imageFile) {
+            endpoint = '/ocr';
+            formData.append('image_file', imageFile);
+            postData = formData;
+        } else if (file) {
+            endpoint = '/analyze';
+            formData.append('file', file);
+            postData = formData;
+        } else if (selectedBook) {
+            endpoint = '/analyze';
+            postData = {
+                filepath: selectedBook,
+                start_position: pageNumber * pageSizeCharacter,
+                page_size: pageSizeCharacter,
+            };
         } else {
-          // Change the status to an error message if the call fails
-          setBackendStatus("Connection error. The back-end may be down.");
-          setIsLoading(false);
-          console.error("There was an error!", error);
+            setIsLoading(false);
+            return;
         }
-      });
-};
+
+        // Add pagination data to the FormData for file/image uploads
+        if (imageFile || file) {
+            formData.append('start_position', pageNumber * pageSizeCharacter);
+            formData.append('page_size', pageSizeCharacter);
+        }
+
+        const response = await axios.post(`${API_BASE}${endpoint}`, postData, { signal: signal });
+        
+        onSuccess(response.data);
+        console.log("API response:", response.data);
+        setIsLoading(false);
+        setBackendStatus("Back-end connected!");
+    } catch (error) {
+        if (axios.isCancel(error)) {
+            console.log('Request aborted by user');
+        } else {
+            console.error("There was an error!", error);
+            setBackendStatus("Connection error. The back-end may be down.");
+        }
+        setIsLoading(false);
+    }
+}
 
 
 //helper function to set initial word display based on selected level
