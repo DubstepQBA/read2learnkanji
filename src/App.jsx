@@ -209,7 +209,7 @@ function defineWordDisplay(word, selectedLevel) {
   // User's level and "two up" level as power scores
   const userLevelScore = Math.pow(6 - selectedLevel, 2);
   const twoUpScore = Math.pow(6 - (selectedLevel - 2), 2);
- console.log("kanji score is", score, "user level score is", userLevelScore, "two up score is", twoUpScore);
+  //console.log("kanji score is", score, "user level score is", userLevelScore, "two up score is", twoUpScore);
   if (score <= userLevelScore) {
     // Word is easier or equal to user's level
     return { ...word, showFurigana: false, showTranslation: false };
