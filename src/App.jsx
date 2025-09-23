@@ -21,6 +21,8 @@ function App() {
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
   const [selectedLevel, setSelectedLevel] = useState(3); // Default to N5
+  const [backendStatus, setBackendStatus] = useState("The back-end needs to boot up, this might take some time...");
+
 
    useEffect(() => {
   if (file || imageFile || selectedBook) {
@@ -105,61 +107,47 @@ useEffect(() => {
     setPrefetchedData({});
   };
 
-  async function fetchAPI(pageNumber, onSuccess) {
+  const fetchAPI = (page, callback) => {
+    // Reset wordData and set a "spinning up" message before the API call
+    setWordData([]);
+    setBackendStatus("Back-end spinning up, please wait...");
     setIsLoading(true);
-    controllerRef.current = new AbortController();
-    const signal = controllerRef.current.signal;
-    
-    let response;
-    try {
-      let formData = new FormData();
-      let endpoint = '';
-      
-      if (imageFile) {
-        endpoint = '/ocr';
-        formData.append('image_file', imageFile);
-      } else if (file) {
-        endpoint = '/analyze';
-        formData.append('file', file);
-      } else if (selectedBook) {
-        // Book requests are a special case, they don't use FormData.
-        response = await axios.post(`${API_BASE}/analyze`, {
-          filepath: selectedBook,
-          start_position: pageNumber * pageSizeCharacter,
-          page_size: pageSizeCharacter,
-        }, {
-          signal: signal,
-        });
-        onSuccess(response.data);
-        setIsLoading(false);
-        return;
-      } else {
-        setIsLoading(false);
-        return;
-      }
 
-      // Add pagination data to the FormData for file/image uploads
-      formData.append('start_position', pageNumber * pageSizeCharacter);
-      formData.append('page_size', pageSizeCharacter);
-
-      response = await axios.post(`${API_BASE}${endpoint}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        signal: signal,
-      });
-
-      onSuccess(response.data);
-      console.log("API response:", response.data);
-      setIsLoading(false);
-
-    } catch (error) {
-      if (axios.isCancel(error)) {
-        console.log('Request aborted by user');
-      } else {
-        console.error("Error fetching data:", error);
-      }
-      setIsLoading(false);
+    if (controllerRef.current) {
+      controllerRef.current.abort();
     }
-  }
+    controllerRef.current = new AbortController();
+
+    const startPosition = page * pageSizeCharacter;
+    const endPosition = (page + 1) * pageSizeCharacter;
+
+    const endpoint = selectedBook ? `${API_BASE}/process_text_book` : `${API_BASE}/process_text_file`;
+
+    // The rest of your axios call remains the same, but with added status updates
+    axios.post(endpoint,
+      selectedBook ? { filepath: selectedBook, start_position: startPosition, page_size: pageSizeCharacter } : file,
+      {
+        headers: {
+          'Content-Type': selectedBook ? 'application/json' : file.type
+        },
+        signal: controllerRef.current.signal
+      })
+      .then(response => {
+        // Upon a successful response, change the status to "connected"
+        setBackendStatus("Back-end connected!");
+        callback(response.data);
+      })
+      .catch(error => {
+        if (axios.isCancel(error)) {
+          console.log('Request canceled', error.message);
+        } else {
+          // Change the status to an error message if the call fails
+          setBackendStatus("Connection error. The back-end may be down.");
+          setIsLoading(false);
+          console.error("There was an error!", error);
+        }
+      });
+};
 
 
 //helper function to set initial word display based on selected level
@@ -281,8 +269,7 @@ function defineWordDisplay(word, selectedLevel) {
   return (
     <>
       <h1>Japanese Text Reader</h1>
-
-
+      <div> <p>{backendStatus}</p>  </div>
       <div className="level-select">
       <button onClick={() => {setSelectedLevel(5)}}>N5</button>
       <button onClick={() => {setSelectedLevel(4)}}>N4</button>

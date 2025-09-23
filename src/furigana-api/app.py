@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from sudachipy import dictionary, tokenizer
 import re
 import json
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from PyPDF2 import PdfReader
 import docx
 import sqlite3
@@ -187,6 +187,7 @@ def process_text_data(text_content, start_position, page_size):
     return {"data": output, "totalLength": total_length}
 
 @app.route("/ocr", methods=["POST"])
+@cross_origin() # Add this line
 def ocr():
     if 'image_file' not in request.files:
         return jsonify({"error": "No image file provided"}), 400
@@ -220,6 +221,7 @@ def ocr():
 
 
 @app.route("/analyze", methods=["POST"])
+@cross_origin() # Add this line
 def analyze_text():
     """
     Analyzes an uploaded document or a pre-selected book.
