@@ -3,6 +3,7 @@ flask
 flask-cors
 sudachipy
 PyPDF2
+pdf2image
 python-docx
 gunicorn
 pytesseract
