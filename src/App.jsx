@@ -317,12 +317,19 @@ function defineWordDisplay(word, selectedLevel) {
 
       {/* Picture Upload Section */}
       <div className="image-upload">
-        <label htmlFor="image-input">
-          <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload Image</button>
-        </label>
-        <input type="file" onChange={handleImageFileChange} id="image-input" ref={imageInputRef} style={{ display: 'none' }} accept=".jpg,.jpeg,.png" /*capture="environment"*//>
-        <p className="file-name">{imageFile ? imageFile.name : 'No image file selected'}</p>
-      </div>
+      <label htmlFor="image-input">
+        <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Take or Upload Image</button>
+      </label>
+      <input
+        type="file"
+        onChange={handleImageFileChange}
+        id="image-input"
+        ref={imageInputRef}
+        style={{ display: 'none' }}
+        accept="image/*"
+        capture="environment" // This is the attribute that enables the camera option
+      />
+    </div>
 
       {/*submit, reset and cancel buttons */}
       <div className="control-buttons">
