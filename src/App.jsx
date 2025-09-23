@@ -320,7 +320,7 @@ function defineWordDisplay(word, selectedLevel) {
         <label htmlFor="image-input">
           <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload Image</button>
         </label>
-        <input type="file" onChange={handleImageFileChange} id="image-input" ref={imageInputRef} style={{ display: 'none' }} accept=".jpg,.jpeg,.png"/>
+        <input type="file" onChange={handleImageFileChange} id="image-input" ref={imageInputRef} style={{ display: 'none' }} accept=".jpg,.jpeg,.png" /*capture="environment"*//>
         <p className="file-name">{imageFile ? imageFile.name : 'No image file selected'}</p>
       </div>
 
