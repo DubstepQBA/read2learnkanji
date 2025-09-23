@@ -4,6 +4,7 @@ import './App.css';
 import axios from 'axios';
 
 const MemoizedWord = React.memo(Word);
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080";
 
 function App() {
   const [wordData, setWordData] = useState([]);
@@ -122,7 +123,7 @@ useEffect(() => {
         formData.append('file', file);
       } else if (selectedBook) {
         // Book requests are a special case, they don't use FormData.
-        response = await axios.post('http://127.0.0.1:8080/analyze', {
+        response = await axios.post(`${API_BASE}/analyze`, {
           filepath: selectedBook,
           start_position: pageNumber * pageSizeCharacter,
           page_size: pageSizeCharacter,
@@ -141,7 +142,7 @@ useEffect(() => {
       formData.append('start_position', pageNumber * pageSizeCharacter);
       formData.append('page_size', pageSizeCharacter);
 
-      response = await axios.post(`http://127.0.0.1:8080${endpoint}`, formData, {
+      response = await axios.post(`${API_BASE}${endpoint}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         signal: signal,
       });
