@@ -2,6 +2,7 @@
 flask
 flask-cors
 sudachipy
+sudachidict_core
 PyPDF2
 pdf2image
 python-docx
