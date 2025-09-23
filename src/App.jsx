@@ -42,7 +42,7 @@ useEffect(() => {
         })
         .catch(error => {
             console.error("Warmup failed:", error);
-            setBackendStatus("Connection error. The back-end may be down.");
+            setBackendStatus("Warm-up unsuccessfull, try sending a document or a picture (it might take a few seconds at first)");
         });
 }, []);
 
