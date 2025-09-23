@@ -38,6 +38,14 @@ h4.naka-midashi {
   text-align: left;
 }
 
+.userInformation {
+  padding: 0;
+  margin-top: 1em;
+  margin-bottom:1em;
+  font-size: 0.8em;
+}
+
+
 .main_text {
   background-color: #333;
   padding: 2em;

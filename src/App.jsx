@@ -294,8 +294,13 @@ function defineWordDisplay(word, selectedLevel) {
 
   return (
     <>
+      <div > <p className="userInformation">~This is only an approximation of what the final output will look like!~</p> 
+      <p className="userInformation" > if you are curious about the final output, visit the Concordia booth! ;)</p>
+      </div>
+      
       <h1>Japanese Text Reader</h1>
-      <div> <p>{backendStatus}</p>  </div>
+      <div > <p className="userInformation">{backendStatus}</p>  </div>
+      
       <div className="level-select">
       <button onClick={() => {setSelectedLevel(5)}}>N5</button>
       <button onClick={() => {setSelectedLevel(4)}}>N4</button>
@@ -328,13 +333,13 @@ function defineWordDisplay(word, selectedLevel) {
           <button onClick={handleReset}>Reset</button>
       </div>    
 
-      {/* Pre-selected Books Section */}
+      {/* Pre-selected Books Section 
       <div className="pre-selected-books">
         <p>Or choose a pre-selected book:</p>
         <button onClick={() => handleBookSelect('wagahaiwa_nekodearu.txt')}>Wagahai Wa Neko De Aru (dificult)</button>
         <button onClick={() => handleBookSelect('momotaro.txt')}>momotaro (easy)</button>
         <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button>
-      </div>
+      </div> */}
 
       {/* navigation buttons */}
       <div className="page-navigation">
@@ -348,11 +353,6 @@ function defineWordDisplay(word, selectedLevel) {
           <p>Loading...</p>
         ) : (
           <>
-            <div className="jisage_8" style={{ marginLeft: '8em' }}>
-              <h4 className="naka-midashi">
-                <a className="midashi_anchor" id="midashi10">一</a>
-              </h4>
-            </div>
             {paragraphElement}
           </>
         )}
