@@ -294,12 +294,9 @@ function defineWordDisplay(word, selectedLevel) {
 
   return (
     <>
-      <div > <p className="userInformation">~This is only an approximation of what the final output will look like!~</p> 
-      <p className="userInformation" > if you are curious about the final output, visit the Concordia booth! ;)</p>
-      </div>
-      
+
       <h1>Japanese Text Reader</h1>
-      <div > <p className="userInformation">{backendStatus}</p>  </div>
+      <div > <p>{backendStatus}</p>  </div>
       
       <div className="level-select">
       <button onClick={() => {setSelectedLevel(5)}}>N5</button>
@@ -356,6 +353,9 @@ function defineWordDisplay(word, selectedLevel) {
             {paragraphElement}
           </>
         )}
+      </div>
+      <div > <p className="userInformation">~This is only an approximation of what the final output will look like!~</p> 
+      <p className="userInformation" > if you are curious about the final output, visit the Concordia booth! ;)</p>
       </div>
     </>
   );
