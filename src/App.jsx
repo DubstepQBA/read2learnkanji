@@ -317,18 +317,30 @@ function defineWordDisplay(word, selectedLevel) {
 
       {/* Picture Upload Section */}
       <div className="image-upload">
-      <label htmlFor="image-input">
-        <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Take or Upload Image</button>
-      </label>
-      <input
-        type="file"
-        onChange={handleImageFileChange}
-        id="image-input"
-        ref={imageInputRef}
-        style={{ display: 'none' }}
-        accept="image/*"
-        capture="environment" // This is the attribute that enables the camera option
-      />
+        <label htmlFor="image-input">
+          <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Take a picture</button>
+        </label>
+        <input
+          type="file"
+          onChange={handleImageFileChange}
+          id="image-input"
+          ref={imageInputRef}
+          style={{ display: 'none' }}
+          accept="image/*"
+          capture="environment" // This is the attribute that enables the camera option
+        />
+        <p>or</p>
+        <label htmlFor="image-input">
+          <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload an Image</button>
+        </label>
+        <input
+          type="file"
+          onChange={handleImageFileChange}
+          id="image-input"
+          ref={imageInputRef}
+          style={{ display: 'none' }}
+          accept="image/*"
+        />
     </div>
 
       {/*submit, reset and cancel buttons */}
@@ -352,7 +364,9 @@ function defineWordDisplay(word, selectedLevel) {
         <span>Page {currentPage + 1}</span>
         <button onClick={handleNextPage} disabled={(currentPage + 1) * pageSizeCharacter >= totalLength}>Next Page</button>
       </div>
-
+      <div> 
+        <p className="userInformation">Click on words to toggle furigana and translations!</p>
+      </div>
       <div className="main_text" style={{ lineHeight: 1.8 }}>
         {isLoading && !prefetchedData[`page_${currentPage}`] ? (
           <p>Loading...</p>
