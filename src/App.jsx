@@ -6,6 +6,8 @@ import axios from 'axios';
 const MemoizedWord = React.memo(Word);
 const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080"; //http://127.0.0.1:5000 (local) http://127.0.0.1:8080 (deploy)
 
+
+
 function App() {
   const [wordData, setWordData] = useState([]);
   const [pageSizeCharacter, setPageSizeCharacter] = useState(1000);
@@ -17,11 +19,17 @@ function App() {
   const [prefetchedData, setPrefetchedData] = useState({});
   const [selectedBook, setSelectedBook] = useState(null); // New state for pre-selected books
   const [imageFile, setImageFile] = useState(null);
-  const fileName = file ? file.name : selectedBook;
-  const fileInputRef = useRef(null);
-  const imageInputRef = useRef(null);
   const [selectedLevel, setSelectedLevel] = useState(3); // Default to N5
   const [backendStatus, setBackendStatus] = useState("The back-end needs to boot up, this might take some time...");
+ 
+
+
+  const cameraInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const fileName = file ? file.name : selectedBook;
+
+
 
 
    useEffect(() => {
@@ -306,42 +314,48 @@ function defineWordDisplay(word, selectedLevel) {
       <button onClick={() => {setSelectedLevel(2)}}>N2</button>
       <button onClick={() => {setSelectedLevel(1)}}>N1</button>
       </div>
+
+      
       {/* File Upload Section */}
       <div className="file-upload">
         <label htmlFor="file-input">
           <button onClick={() => fileInputRef.current && fileInputRef.current.click()}>Upload Document</button>
         </label>
         <input type="file" onChange={handleFileChange} id="file-input" ref={fileInputRef} style={{ display: 'none' }} accept=".pdf,.doc,.docx,.txt"/>
-        <p className="file-name">{file ? file.name : 'No document selected'}</p>
+        
       </div>
 
       {/* Picture Upload Section */}
       <div className="image-upload">
-        <label htmlFor="image-input">
-          <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Take a picture</button>
-        </label>
+        {/*<p>Take a picture</p>*/}
+        <button onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>Take a picture</button>
         <input
           type="file"
           onChange={handleImageFileChange}
-          id="image-input"
-          ref={imageInputRef}
+          id="camera-input"
+          ref={cameraInputRef}
           style={{ display: 'none' }}
           accept="image/*"
-          capture="environment" // This is the attribute that enables the camera option
+          capture="environment"
         />
+
         <p>or</p>
-        <label htmlFor="image-input">
-          <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload an Image</button>
-        </label>
+
+        {/*<p>Upload an image</p>*/}
+        <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload an Image</button>
         <input
           type="file"
           onChange={handleImageFileChange}
-          id="image-input"
+          id="upload-input"
           ref={imageInputRef}
           style={{ display: 'none' }}
           accept="image/*"
         />
-    </div>
+      </div>
+
+      <div> 
+        <p className="file-name">{file ? file.name : 'No document selected'}</p>
+      </div>
 
       {/*submit, reset and cancel buttons */}
       <div className="control-buttons">
