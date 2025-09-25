@@ -329,7 +329,7 @@ function defineWordDisplay(word, selectedLevel) {
       {/* Picture Upload Section */}
       <div className="image-upload">
         {/*<p>Take a picture</p>*/}
-        <button onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>Take a picture</button>
+        <button onClick={() => cameraInputRef.current && cameraInputRef.current.click()}>Take picture</button>
         <input
           type="file"
           onChange={handleImageFileChange}
@@ -343,7 +343,7 @@ function defineWordDisplay(word, selectedLevel) {
         <p>or</p>
 
         {/*<p>Upload an image</p>*/}
-        <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload an Image</button>
+        <button onClick={() => imageInputRef.current && imageInputRef.current.click()}>Upload Image</button>
         <input
           type="file"
           onChange={handleImageFileChange}
