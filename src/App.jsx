@@ -359,13 +359,13 @@ function defineWordDisplay(word, selectedLevel) {
           <button onClick={handleReset}>Reset</button>
       </div>    
 
-      {/* Pre-selected Books Section 
-      <div className="pre-selected-books">
+       Pre-selected Books Section 
+      {/*<div className="pre-selected-books">
         <p>Or choose a pre-selected book:</p>
         <button onClick={() => handleBookSelect('City_and_country_side')}>city vs country-side life (~N3)</button>
         <button onClick={() => handleBookSelect('momotaro.txt')}>momotaro (easy)</button>
-        <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button>
-      </div> */}
+        <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button> 
+      </div> */} 
       <div className="level-select">
         <button onClick={() => {setSelectedLevel(5)}}>N5</button>
         <button onClick={() => {setSelectedLevel(4)}}>N4</button>
