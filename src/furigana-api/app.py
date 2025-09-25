@@ -200,8 +200,7 @@ def ocr():
     if image_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    file = request.files['image_file']
-    filename = file.filename
+    filename = image_file.filename
     file_ext = os.path.splitext(filename)[1].lower()
     file_stream = io.BytesIO(file.read())
     

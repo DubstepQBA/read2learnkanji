@@ -168,7 +168,13 @@ useEffect(() => {
             formData.append('page_size', pageSizeCharacter);
         }
 
-        const response = await axios.post(`${API_BASE}${endpoint}`, postData, { signal: signal });
+        const response = await axios.post(`${API_BASE}${endpoint}`, postData, {
+          signal: signal,
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+
         
         onSuccess(response.data);
         console.log("API response:", response.data);
