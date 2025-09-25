@@ -186,11 +186,17 @@ def process_text_data(text_content, start_position, page_size):
 
     return {"data": output, "totalLength": total_length}
 
-@app.route("/ocr", methods=["POST"])
-@cross_origin() # Add this line
+@app.route('/ocr', methods=['POST'])
+@cross_origin()
 def ocr():
+    # Check if the 'image_file' key is in the request
     if 'image_file' not in request.files:
-        return jsonify({"error": "No image file provided"}), 400
+        return jsonify({"error": "No image_file part in the request"}), 400
+
+    image_file = request.files['image_file']
+
+    if image_file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
 
     file = request.files['image_file']
     filename = file.filename

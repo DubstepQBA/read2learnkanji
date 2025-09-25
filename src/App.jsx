@@ -142,12 +142,13 @@ useEffect(() => {
 
         if (imageFile) {
             endpoint = '/ocr';
-            formData.append('image_file', imageFile);
+            formData.append('image_file', imageFile); // The key name must match what the backend expects
             postData = formData;
         } else if (file) {
             endpoint = '/analyze';
             formData.append('file', file);
             postData = formData;
+        
         } else if (selectedBook) {
             endpoint = '/analyze';
             postData = {
