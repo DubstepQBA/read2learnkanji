@@ -366,7 +366,7 @@ function defineWordDisplay(word, selectedLevel) {
       {/* Pre-selected Books Section 
       <div className="pre-selected-books">
         <p>Or choose a pre-selected book:</p>
-        <button onClick={() => handleBookSelect('wagahaiwa_nekodearu.txt')}>Wagahai Wa Neko De Aru (dificult)</button>
+        <button onClick={() => handleBookSelect('City_and_country_side_life')}>city vs country-side life (~N3)</button>
         <button onClick={() => handleBookSelect('momotaro.txt')}>momotaro (easy)</button>
         <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button>
       </div> */}
