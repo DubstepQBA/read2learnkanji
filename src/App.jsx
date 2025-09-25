@@ -170,6 +170,7 @@ useEffect(() => {
 
         const response = await axios.post(`${API_BASE}${endpoint}`, postData, {
           signal: signal,
+          headers: { } // no Content-Type!
         });
 
         
