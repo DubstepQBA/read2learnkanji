@@ -231,6 +231,7 @@ def ocr():
 @app.route("/analyze", methods=["POST"])
 @cross_origin() # Add this line
 def analyze_text():
+    
     """
     Analyzes an uploaded document or a pre-selected book.
     It reads the file content, extracts text, and then tokenizes it.
@@ -240,6 +241,9 @@ def analyze_text():
     # Part 1: Handle File Uploads (from a form-data request)
     # ----------------------------------------------------
     # Check if a file was uploaded with the request
+    print("Headers:", dict(request.headers))
+    print("request.files:", request.files)
+    print("request.form:", request.form)
     if 'file' in request.files and request.files['file'].filename != '':
         try:
             file = request.files['file']

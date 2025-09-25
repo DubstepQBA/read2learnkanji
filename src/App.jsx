@@ -131,62 +131,58 @@ useEffect(() => {
   };
 
   async function fetchAPI(pageNumber, onSuccess) {
-    setIsLoading(true);
-    controllerRef.current = new AbortController();
-    const signal = controllerRef.current.signal;
-    
-    try {
-        let formData = new FormData();
-        console.log("Uploading image file:", imageFile);
-        let endpoint = '';
-        let postData;
+  setIsLoading(true);
+  controllerRef.current = new AbortController();
+  const signal = controllerRef.current.signal;
 
-        if (imageFile) {
-            endpoint = '/ocr';
-            formData.append('image_file', imageFile); // The key name must match what the backend expects
-            postData = formData;
-        } else if (file) {
-            endpoint = '/analyze';
-            formData.append('file', file);
-            postData = formData;
-        
-        } else if (selectedBook) {
-            endpoint = '/analyze';
-            postData = {
-                filepath: selectedBook,
-                start_position: pageNumber * pageSizeCharacter,
-                page_size: pageSizeCharacter,
-            };
-        } else {
-            setIsLoading(false);
-            return;
-        }
+  try {
+    let formData = new FormData();
+    let endpoint = '';
+    let postData;
+    let config = { signal: signal }; // default config
 
-        // Add pagination data to the FormData for file/image uploads
-        if (imageFile || file) {
-            formData.append('start_position', pageNumber * pageSizeCharacter);
-            formData.append('page_size', pageSizeCharacter);
-        }
+    console.log("Uploading image file:", imageFile);
 
-        const response = await axios.post(`${API_BASE}${endpoint}`, postData, {
-          signal: signal,
-          headers: { } // no Content-Type!
-        });
-
-        
-        onSuccess(response.data);
-        console.log("API response:", response.data);
-        setIsLoading(false);
-        setBackendStatus("Back-end connected!");
-    } catch (error) {
-        if (axios.isCancel(error)) {
-            console.log('Request aborted by user');
-        } else {
-            console.error("There was an error!", error);
-            setBackendStatus("Connection error. The back-end may be down.");
-        }
-        setIsLoading(false);
+    if (imageFile) {
+      endpoint = '/ocr';
+      formData.append('image_file', imageFile);
+      formData.append('start_position', pageNumber * pageSizeCharacter);
+      formData.append('page_size', pageSizeCharacter);
+      postData = formData;
+    } else if (file) {
+      endpoint = '/analyze';
+      formData.append('file', file);
+      formData.append('start_position', pageNumber * pageSizeCharacter);
+      formData.append('page_size', pageSizeCharacter);
+      postData = formData;
+    } else if (selectedBook) {
+      endpoint = '/analyze';
+      postData = {
+        filepath: selectedBook,
+        start_position: pageNumber * pageSizeCharacter,
+        page_size: pageSizeCharacter,
+      };
+      config.headers = { "Content-Type": "application/json" }; // 🔑 send JSON properly
+    } else {
+      setIsLoading(false);
+      return;
     }
+
+    const response = await axios.post(`${API_BASE}${endpoint}`, postData, config);
+
+    onSuccess(response.data);
+    console.log("API response:", response.data);
+    setIsLoading(false);
+    setBackendStatus("Back-end connected!");
+  } catch (error) {
+    if (axios.isCancel(error)) {
+      console.log('Request aborted by user');
+    } else {
+      console.error("There was an error!", error);
+      setBackendStatus("Connection error. The back-end may be down.");
+    }
+    setIsLoading(false);
+  }
 }
 
 
@@ -366,7 +362,7 @@ function defineWordDisplay(word, selectedLevel) {
       {/* Pre-selected Books Section 
       <div className="pre-selected-books">
         <p>Or choose a pre-selected book:</p>
-        <button onClick={() => handleBookSelect('City_and_country_side_life')}>city vs country-side life (~N3)</button>
+        <button onClick={() => handleBookSelect('City_and_country_side')}>city vs country-side life (~N3)</button>
         <button onClick={() => handleBookSelect('momotaro.txt')}>momotaro (easy)</button>
         <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button>
       </div> */}
