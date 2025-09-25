@@ -124,6 +124,7 @@ button:disabled {
 
 .file-input-container, .pre-selected-books, .page-navigation, .control-buttons {
   margin-top: 20px;
+  margin-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
