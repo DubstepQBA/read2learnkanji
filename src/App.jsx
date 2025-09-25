@@ -308,14 +308,7 @@ function defineWordDisplay(word, selectedLevel) {
       <h2> Just read, and you'll learn.</h2>
       <div > <p>{backendStatus}</p>  </div>
       
-      <div className="level-select">
-      <button onClick={() => {setSelectedLevel(5)}}>N5</button>
-      <button onClick={() => {setSelectedLevel(4)}}>N4</button>
-      <button onClick={() => {setSelectedLevel(3)}}>N3</button>
-      <button onClick={() => {setSelectedLevel(2)}}>N2</button>
-      <button onClick={() => {setSelectedLevel(1)}}>N1</button>
-      </div>
-
+      
       
       {/* File Upload Section */}
       <div className="file-upload">
@@ -372,15 +365,18 @@ function defineWordDisplay(word, selectedLevel) {
         <button onClick={() => handleBookSelect('momotaro.txt')}>momotaro (easy)</button>
         <button onClick={() => handleBookSelect('Book3.txt')}>Book 3</button>
       </div> */}
-
-      {/* navigation buttons */}
-      <div className="page-navigation">
-        <button onClick={handlePrevPage} disabled={currentPage === 0}>Previous Page</button>
-        <span>Page {currentPage + 1}</span>
-        <button onClick={handleNextPage} disabled={(currentPage + 1) * pageSizeCharacter >= totalLength}>Next Page</button>
+      <div className="level-select">
+        <button onClick={() => {setSelectedLevel(5)}}>N5</button>
+        <button onClick={() => {setSelectedLevel(4)}}>N4</button>
+        <button onClick={() => {setSelectedLevel(3)}}>N3</button>
+        <button onClick={() => {setSelectedLevel(2)}}>N2</button>
+        <button onClick={() => {setSelectedLevel(1)}}>N1</button>
       </div>
+
+      
       <div> 
         <p className="userInformation">Click on words to toggle furigana and translations!</p>
+        <p className="userInformation">try to change the JLPT difficulty level as well!</p>
       </div>
       <div className="main_text" style={{ lineHeight: 1.8 }}>
         {isLoading && !prefetchedData[`page_${currentPage}`] ? (
@@ -391,6 +387,13 @@ function defineWordDisplay(word, selectedLevel) {
           </>
         )}
       </div>
+      {/* navigation buttons */}
+      <div className="page-navigation">
+        <button onClick={handlePrevPage} disabled={currentPage === 0}>Previous Page</button>
+        <span>Page {currentPage + 1}</span>
+        <button onClick={handleNextPage} disabled={(currentPage + 1) * pageSizeCharacter >= totalLength}>Next Page</button>
+      </div>
+      
       <div > <p className="userInformation">~This is only a proof of concept~</p> 
       <p className="userInformation" > if you are curious about the final output, visit the Concordia booth! ;)</p>
       </div>

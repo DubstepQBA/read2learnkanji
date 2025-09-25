@@ -189,6 +189,8 @@ def process_text_data(text_content, start_position, page_size):
 @app.route('/ocr', methods=['POST'])
 @cross_origin()
 def ocr():
+    print("request.files:", request.files)
+    print("request.form:", request.form)
     # Check if the 'image_file' key is in the request
     if 'image_file' not in request.files:
         return jsonify({"error": "No image_file part in the request"}), 400
