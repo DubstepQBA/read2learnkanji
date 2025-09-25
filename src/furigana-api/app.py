@@ -13,7 +13,7 @@ import io
 from pdf2image import convert_from_bytes
 
 app = Flask(__name__)
-cors = CORS(app, origins='*')
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(base_dir, '..', '..'))
