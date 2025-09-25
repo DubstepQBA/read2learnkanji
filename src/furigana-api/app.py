@@ -202,7 +202,7 @@ def ocr():
 
     filename = image_file.filename
     file_ext = os.path.splitext(filename)[1].lower()
-    file_stream = io.BytesIO(file.read())
+    file_stream = io.BytesIO(image_file.read())
     
     start_position = int(request.form.get("start_position", 0))
     page_size = int(request.form.get("page_size", 1000))
