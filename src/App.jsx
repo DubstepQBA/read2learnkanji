@@ -137,6 +137,7 @@ useEffect(() => {
     
     try {
         let formData = new FormData();
+        console.log("Uploading image file:", imageFile);
         let endpoint = '';
         let postData;
 
@@ -315,7 +316,7 @@ function defineWordDisplay(word, selectedLevel) {
         <label htmlFor="file-input">
           <button onClick={() => fileInputRef.current && fileInputRef.current.click()}>Upload Document</button>
         </label>
-        <input type="file" onChange={handleFileChange} id="file-input" ref={fileInputRef} style={{ display: 'none' }} accept=".pdf,.doc,.docx,.txt"/>
+        <input type="file" onChange={handleFileChange} id="file-input" ref={fileInputRef} style={{ display: 'none' }} accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"/>
         
       </div>
 
