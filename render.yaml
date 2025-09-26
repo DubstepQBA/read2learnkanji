@@ -2,12 +2,16 @@ services:
   - type: web
     name: furigana-api
     env: python
-    plan: free
     buildCommand: |
-      apt-get update && apt-get install -y tesseract-ocr poppler-utils
-      pip install --upgrade pip
+      apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-jpn poppler-utils
       pip install -r src/furigana-api/requirements.txt
-    startCommand: python src/furigana-api/app.py
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+    workingDirectory: src/furigana-api
+    healthCheckPath: /health
     envVars:
+      - key: PORT
+        value: 5000
+      - key: FLASK_ENV
+        value: production
       - key: PYTHONUNBUFFERED
-        value: "1"
+        value: 1

@@ -1,0 +1,27 @@
+# Dockerfile simplificado para Railway
+FROM python:3.11-slim
+
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-jpn \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar requirements.txt
+COPY src/furigana-api/requirements.txt .
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código del backend
+COPY src/furigana-api/ .
+
+# Exponer el puerto (Railway asignará dinámicamente)
+EXPOSE 5000
+
+# Comando para ejecutar la aplicación
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--workers", "1", "--timeout", "120", "app:app"]
