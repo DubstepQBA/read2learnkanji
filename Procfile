@@ -1,1 +1,1 @@
-web: bash -c 'echo "Iniciando aplicación desde: $(pwd)"; echo "Contenido:"; ls -la; if [ -d "src/furigana-api" ]; then echo "Encontrado src/furigana-api"; cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app; elif [ -d "furigana-api" ]; then echo "Encontrado furigana-api"; cd furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app; else echo "ERROR: No se encontró furigana-api en $(pwd)"; find . -name "app.py"; exit 1; fi'
+web: cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
