@@ -1,0 +1,11 @@
+# Railway configuration usando el Dockerfile original
+build:
+  builder: DOCKERFILE
+  dockerfilePath: src/furigana-api/Dockerfile
+
+deploy:
+  startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+  healthcheckPath: /health
+  healthcheckTimeout: 300
+  restartPolicyType: ON_FAILURE
+  restartPolicyMaxRetries: 10

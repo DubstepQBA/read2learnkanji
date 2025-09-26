@@ -10,37 +10,35 @@ Este proyecto incluye configuración completa de Docker para desplegar en Railwa
 
 ## 🚀 Despliegue en Railway
 
-### ⚠️ Solución al Error de Build en Railway
+### ✅ Solución Definitiva al Error de Build
 
-Si obtienes un error durante el build en Railway, prueba estos pasos:
+El error ocurre porque Railway no encuentra las rutas correctas. La solución es usar el **Dockerfile original** que ya está en `src/furigana-api/Dockerfile`.
 
-#### Opción 1: Usar el Dockerfile Simplificado (Recomendado)
+#### Configuración Actual (Funcional)
 
-1. **Asegúrate de tener estos archivos en tu repo**:
-   - `Dockerfile.railway` (creado automáticamente)
-   - `railway.json` (actualizado)
-   - `railway.toml` (alternativa)
+**Archivos necesarios en tu repo**:
+- `railway.json` → usa el Dockerfile original en `src/furigana-api/Dockerfile`
+- `src/furigana-api/Dockerfile` → Dockerfile probado y funcional
+- `src/furigana-api/requirements.txt` → dependencias de Python
 
-2. **Conectar repositorio a Railway**:
+#### Pasos para Desplegar:
+
+1. **Conectar repositorio a Railway**:
    - Ve a https://railway.app
    - Crea un nuevo proyecto
    - Conecta tu repositorio de GitHub
-   - Railway usará automáticamente `Dockerfile.railway`
+   - Railway detectará automáticamente el `railway.json`
 
-#### Opción 2: Configuración Manual en Railway
-
-Si el automático falla:
-
-1. En Railway Dashboard:
-   - Ve a Settings → Service
-   - Cambia "Build Command" a: `docker build -f Dockerfile.railway -t railway-app .`
-   - Cambia "Start Command" a: `gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app`
-
-2. **Variables de entorno** (configura en Railway Dashboard):
+2. **Variables de entorno** (configura en Railway Dashboard → Variables):
    ```
    FLASK_ENV=production
    PORT=5000
    PYTHONUNBUFFERED=1
+   ```
+
+3. **Start Command** (Railway lo detecta automáticamente):
+   ```bash
+   cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
    ```
 
 ### Opción 2: Despliegue Manual con Docker
