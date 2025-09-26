@@ -1,1 +1,1 @@
-web: cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+web: bash -c 'if [ -d "src/furigana-api" ]; then cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app; else cd furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app; fi'

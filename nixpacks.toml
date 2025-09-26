@@ -9,7 +9,7 @@ cmds = ["chmod +x build.sh && ./build.sh"]
 cmds = []
 
 [start]
-cmd = "cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
+cmd = "bash -c 'if [ -d \"src/furigana-api\" ]; then cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app; else cd furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app; fi'"
 
 [variables]
 PYTHON_VERSION = "3.11"
