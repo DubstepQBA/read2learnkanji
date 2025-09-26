@@ -1,1 +1,1 @@
-web: python3 -m gunicorn --chdir src/furigana-api --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
+web: cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app

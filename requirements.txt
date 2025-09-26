@@ -1,2 +1,3 @@
 # Requirements principal para Railway
 -r src/furigana-api/requirements.txt
+gunicorn==21.2.0
