@@ -2,10 +2,10 @@
 aptPkgs = ["tesseract-ocr", "tesseract-ocr-jpn", "poppler-utils"]
 
 [phases.install]
-cmds = ["cd src/furigana-api && pip install -r requirements.txt"]
+cmds = ["pip install -r src/furigana-api/requirements.txt"]
 
 [start]
-cmd = "cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
+cmd = "python -m gunicorn --chdir src/furigana-api --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
 
 [variables]
 PYTHON_VERSION = "3.11"
