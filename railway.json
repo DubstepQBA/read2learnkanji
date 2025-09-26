@@ -5,7 +5,7 @@
     "buildCommand": "chmod +x build.sh && ./build.sh"
   },
   "deploy": {
-    "startCommand": "cd src/furigana-api && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app",
+    "startCommand": "chmod +x start.sh && ./start.sh",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
