@@ -1,9 +1,10 @@
 # Configuración simplificada para Railway - Python nativo
 [build]
 builder = "NIXPACKS"
+buildCommand = "python3 -m pip install --upgrade pip && python3 -m pip install -r src/furigana-api/requirements.txt"
 
 [deploy]
-startCommand = "python -m gunicorn --chdir src/furigana-api --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
+startCommand = "python3 -m gunicorn --chdir src/furigana-api --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

@@ -1,11 +1,15 @@
 [phases.setup]
-aptPkgs = ["tesseract-ocr", "tesseract-ocr-jpn", "poppler-utils"]
+aptPkgs = ["tesseract-ocr", "tesseract-ocr-jpn", "poppler-utils", "python3-pip", "python3-dev"]
+nixPkgs = ["python311", "python311Packages.pip"]
 
 [phases.install]
-cmds = ["pip install -r src/furigana-api/requirements.txt"]
+cmds = [
+    "python3 -m pip install --upgrade pip",
+    "python3 -m pip install -r src/furigana-api/requirements.txt"
+]
 
 [start]
-cmd = "python -m gunicorn --chdir src/furigana-api --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
+cmd = "python3 -m gunicorn --chdir src/furigana-api --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app"
 
 [variables]
 PYTHON_VERSION = "3.11"
