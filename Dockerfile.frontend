@@ -1,0 +1,26 @@
+# Frontend Dockerfile para Railway
+FROM node:18-alpine
+
+# Establecer el directorio de trabajo
+WORKDIR /app
+
+# Copiar package.json y package-lock.json primero para aprovechar la caché
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm ci --only=production
+
+# Copiar el resto de los archivos del frontend
+COPY . .
+
+# Construir la aplicación para producción
+RUN npm run build
+
+# Instalar un servidor web simple para servir los archivos estáticos
+RUN npm install -g serve
+
+# Exponer el puerto (Railway asignará un puerto dinámicamente)
+EXPOSE 3000
+
+# Comando para servir la aplicación construida
+CMD ["serve", "-s", "dist", "-l", "3000"]

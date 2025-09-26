@@ -4,7 +4,7 @@ import './App.css';
 import axios from 'axios';
 
 const MemoizedWord = React.memo(Word);
-const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8080"; //http://127.0.0.1:5000 (local) http://127.0.0.1:8080 (deploy)
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"; //http://127.0.0.1:5000 (local) http://127.0.0.1:8080 (deploy)
 
 
 
@@ -142,13 +142,21 @@ useEffect(() => {
     let config = { signal: signal }; // default config
 
     console.log("Uploading image file:", imageFile);
+    console.log("Image file name:", imageFile?.name);
+    console.log("Image file type:", imageFile?.type);
 
     if (imageFile) {
       endpoint = '/ocr';
-      formData.append('image_file', imageFile);
+      // Ensure we're appending the actual file with the correct field name
+      formData.append('image_file', imageFile, imageFile.name);
       formData.append('start_position', pageNumber * pageSizeCharacter);
       formData.append('page_size', pageSizeCharacter);
       postData = formData;
+      
+      // Debug: Log FormData contents
+      for (let pair of formData.entries()) {
+        console.log('FormData:', pair[0], pair[1]);
+      }
     } else if (file) {
       endpoint = '/analyze';
       formData.append('file', file);
@@ -179,7 +187,15 @@ useEffect(() => {
       console.log('Request aborted by user');
     } else {
       console.error("There was an error!", error);
-      setBackendStatus("Connection error. The back-end may be down.");
+      console.error("Error response:", error.response);
+      console.error("Error status:", error.response?.status);
+      console.error("Error data:", error.response?.data);
+      
+      if (error.response?.status === 400) {
+        setBackendStatus(`Bad request: ${error.response.data?.error || 'Unknown error'}`);
+      } else {
+        setBackendStatus("Connection error. The back-end may be down.");
+      }
     }
     setIsLoading(false);
   }

@@ -110,9 +110,12 @@ def read_docx(file_stream):
 
 def read_image_with_ocr(file_stream):
     try:
+        print("Starting image OCR processing...")
         img = Image.open(io.BytesIO(file_stream.read()))
+        print(f"Image opened successfully: {img.format}, {img.size}")
         # Use Tesseract to get the text, specifying Japanese language
         text = pytesseract.image_to_string(img, lang='jpn')
+        print(f"OCR completed, text length: {len(text)}")
         return text
     except Exception as e:
         print(f"An error occurred during image OCR: {e}")
@@ -189,42 +192,68 @@ def process_text_data(text_content, start_position, page_size):
 @app.route('/ocr', methods=['POST'])
 @cross_origin()
 def ocr():
+    print("=== OCR REQUEST DEBUG ===")
     print("Headers:", dict(request.headers))
     print("request.files:", request.files)
     print("request.form:", request.form)
-    # Check if the 'image_file' key is in the request
-    if 'image_file' not in request.files:
-        return jsonify({"error": "No image_file part in the request"}), 400
-
-    image_file = request.files['image_file']
+    
+    # Debug: Check all available file keys
+    print("Available file keys:", list(request.files.keys()))
+    
+    # Check content type
+    print("Content-Type:", request.headers.get('Content-Type'))
+    
+    # Check if any image file key is in the request (be more flexible)
+    image_file = None
+    if 'image_file' in request.files:
+        image_file = request.files['image_file']
+        print("Found image_file in request.files")
+    elif 'file' in request.files:
+        image_file = request.files['file']
+        print("Found file in request.files")
+    else:
+        print("No image file found in request")
+        return jsonify({"error": "No image file found in request. Expected 'image_file' or 'file'"}), 400
 
     if image_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
     filename = image_file.filename
     file_ext = os.path.splitext(filename)[1].lower()
+    print(f"Processing file: {filename}, extension: {file_ext}")
+    
     file_stream = io.BytesIO(image_file.read())
     
     start_position = int(request.form.get("start_position", 0))
     page_size = int(request.form.get("page_size", 1000))
+    print(f"Start position: {start_position}, Page size: {page_size}")
     
     try:
         if file_ext in ['.jpg', '.jpeg', '.png']:
+            print(f"Processing image file with extension: {file_ext}")
             text_content = read_image_with_ocr(file_stream)
         elif file_ext == '.pdf':
+            print("Processing PDF file with OCR")
             text_content = read_pdf_with_ocr(file_stream)
         else:
             return jsonify({"error": f"File type '{file_ext}' is not supported for this endpoint."}), 415
 
+        print(f"Extracted text content length: {len(text_content) if text_content else 0}")
+        
         if not text_content:
             return jsonify({"error": "Could not extract text from the file."}), 400
     
-    # Call process_text_data and then jsonify the result
-        return jsonify(process_text_data(text_content, start_position, page_size))
+        # Call process_text_data and then jsonify the result
+        print("Processing text data...")
+        result = process_text_data(text_content, start_position, page_size)
+        print(f"Text processing completed, result data length: {len(result.get('data', []))}")
+        return jsonify(result)
 
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        return jsonify({"error": "An unexpected error occurred with the uploaded file."}), 500
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({"error": f"An unexpected error occurred with the uploaded file: {str(e)}"}), 500
 
 
 
@@ -314,6 +343,33 @@ def analyze_text():
 @cross_origin()
 def warmup():
     return jsonify({"status": "warmup successful"})
+
+@app.route('/health', methods=['GET'])
+@cross_origin()
+def health_check():
+    """Health check endpoint for Railway deployment monitoring"""
+    try:
+        # Verificar que la base de datos esté accesible
+        if conn is None:
+            return jsonify({"status": "unhealthy", "error": "Database connection failed"}), 503
+        
+        # Verificar que Tesseract esté disponible
+        try:
+            import pytesseract
+            # Intentar un OCR simple de prueba
+            test_result = pytesseract.get_tesseract_version()
+        except Exception as e:
+            return jsonify({"status": "unhealthy", "error": f"Tesseract OCR not available: {str(e)}"}), 503
+        
+        return jsonify({
+            "status": "healthy",
+            "timestamp": __import__('datetime').datetime.now().isoformat(),
+            "database": "connected",
+            "tesseract": "available"
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "error": str(e)}), 503
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
 else:
